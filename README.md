@@ -10,6 +10,18 @@ Se creó el esqueleto del repo con:
 - API routes para listings, imágenes, leads, favoritos y admin.
 - Seed inicial con usuarios y un listing.
 
+## Funcionalidades del sitio (MVP)
+- Home con buscador y destacados.
+- Página de resultados con filtros (departamento/distrito/tipo/modalidad/precio/hectáreas/infra).
+- Detalle del aviso con galería, datos clave y formulario de contacto.
+- Registro e inicio de sesión (email + password).
+- Favoritos (requiere login).
+- Panel de usuario: crear/editar avisos con autosave en DRAFT.
+- Publicación con checklist y validaciones estrictas de mínimos obligatorios.
+- Leads: consultas recibidas por aviso (solo dueño).
+- Panel admin: moderación de avisos y gestión básica de usuarios.
+- SEO básico: OpenGraph, sitemap y robots.
+
 ## Stack
 - Frontend: Next.js (App Router), TypeScript, Tailwind.
 - PostCSS: `autoprefixer`.
@@ -44,6 +56,8 @@ Se creó el esqueleto del repo con:
 5. Correr seed: `npm run seed`
 6. Levantar: `npm run dev`
 
+Si actualizás el esquema, volver a ejecutar `npx prisma migrate dev`.
+
 ## Variables de entorno
 Ver `.env.example`.
 
@@ -65,9 +79,11 @@ Modelos:
 
 Enums:
 - `Role` (USER/AGENT/ADMIN)
-- `ListingStatus` (DRAFT/PUBLISHED/PAUSED/REJECTED)
-- `ListingType` (GANADERO/AGRO/MIXTO)
-- `AccessType` (RUTA/CAMINO/MIXTO)
+- `ListingStatus` (DRAFT/PUBLISHED/PAUSED/ARCHIVED)
+- `ListingType` (AGRICOLA/GANADERO/MIXTO/ARROCERO/FORESTAL)
+- `ListingModality` (VENTA/ALQUILER)
+- `WaterSource` (TAJAMAR/ARROYO/RIO/POZO/NINGUNO)
+- `SlopeRange` (P0_2/P2_5/P5_10/P10_PLUS)
 
 Índices principales:
 - `Listing.status + createdAt`
@@ -100,10 +116,12 @@ Listing de ejemplo publicado con 2 imágenes dummy.
     - `hasWater`, `hasTitle`
     - `accessType`
     - `sort` (`newest`, `price_asc`, `price_desc`, `hectares_asc`, `hectares_desc`)
-- `POST /api/listings` (auth)
+- `POST /api/listings` (auth) crea DRAFT
 - `GET /api/listings/{id|slug}`
-- `PATCH /api/listings/{id}` (owner/admin)
-- `DELETE /api/listings/{id}` (owner/admin)
+- `PATCH /api/listings/{id}` (owner/admin) edita DRAFT
+- `POST /api/listings/{id}/publish` (owner/admin) valida mínimos y publica
+- `POST /api/listings/{id}/pause` (owner/admin) pausa
+- `DELETE /api/listings/{id}` (owner/admin) archiva
 
 ### Listing images
 - `POST /api/listings/{id}/images` (owner/admin)
@@ -134,6 +152,11 @@ Listing de ejemplo publicado con 2 imágenes dummy.
 - Upload a S3 implementado vía signed PUT en `/api/uploads`.
 - El listado público devuelve sólo `PUBLISHED`.
 - El detalle permite acceder a drafts solo con sesión válida (dueño/admin).
+
+## Publicación (regla clave)
+- Un aviso puede existir como `DRAFT` con datos parciales.
+- Solo se publica si cumple mínimos obligatorios (ubicación, superficie, tipo, modalidad, precio, contacto, descripción).
+- Checklist y progreso de publicación en el formulario.
 
 ## Scripts
 - `npm run dev` - desarrollo

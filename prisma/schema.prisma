@@ -17,19 +17,35 @@ enum ListingStatus {
   DRAFT
   PUBLISHED
   PAUSED
-  REJECTED
+  ARCHIVED
 }
 
 enum ListingType {
+  AGRICOLA
   GANADERO
-  AGRO
   MIXTO
+  ARROCERO
+  FORESTAL
 }
 
-enum AccessType {
-  RUTA
-  CAMINO
-  MIXTO
+enum ListingModality {
+  VENTA
+  ALQUILER
+}
+
+enum WaterSource {
+  TAJAMAR
+  ARROYO
+  RIO
+  POZO
+  NINGUNO
+}
+
+enum SlopeRange {
+  P0_2
+  P2_5
+  P5_10
+  P10_PLUS
 }
 
 model User {
@@ -48,20 +64,40 @@ model Listing {
   id           String         @id @default(uuid())
   ownerId      String
   owner        User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  title        String
-  slug         String         @unique
-  priceUsd     Int
-  hectares     Float
-  locationText String
-  department   String
-  district     String
+  title        String?
+  slug         String?        @unique
+  locationText String?
+  department   String?
+  district     String?
+  hectaresTotal Float?
+  type         ListingType?
+  modality     ListingModality?
+  description  String?
+  phoneWhatsapp String?
+  contactEmail  String?
+  salePriceTotalUsd    Float?
+  salePriceUsdPerHa    Float?
+  rentUsdPerHaPerYear  Float?
+  rentCropSharePercent Float?
   lat          Float?
   lng          Float?
-  description  String
-  type         ListingType
-  hasWater     Boolean        @default(false)
-  hasTitle     Boolean        @default(false)
-  accessType   AccessType
+  productiveAptitude String?
+  currentUse         String?
+  rotationsHistory   String?
+  soilType           String?
+  productivityIndex  Float?
+  waterSources       WaterSource[] @default([])
+  hasElectricity     Boolean?
+  hasInternalRoads   Boolean?
+  hasFences          Boolean?
+  hasCorrals         Boolean?
+  hasSilos           Boolean?
+  hasSheds           Boolean?
+  distanceToPavedRouteKm Float?
+  distanceToTownKm       Float?
+  yearRoundAccess        Boolean?
+  maxSlopePercentRange   SlopeRange?
+  completenessScore Int           @default(0)
   status       ListingStatus  @default(DRAFT)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
@@ -70,10 +106,11 @@ model Listing {
   favorites    Favorite[]
 
   @@index([status, createdAt])
-  @@index([priceUsd])
-  @@index([hectares])
   @@index([department, district])
   @@index([type])
+  @@index([modality])
+  @@index([hectaresTotal])
+  @@index([completenessScore])
 }
 
 model ListingImage {

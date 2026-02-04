@@ -26,6 +26,9 @@ export async function POST(request: Request) {
     where: { id: parsed.data.listingId }
   });
   if (!listing) return NextResponse.json({ error: "Listing not found" }, { status: 404 });
+  if (listing.status !== "PUBLISHED") {
+    return NextResponse.json({ error: "Listing not available" }, { status: 400 });
+  }
 
   const lead = await prisma.lead.create({
     data: {

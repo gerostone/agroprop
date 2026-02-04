@@ -1,4 +1,4 @@
-import { PrismaClient, ListingStatus, ListingType, AccessType, Role } from "@prisma/client";
+import { PrismaClient, ListingStatus, ListingType, ListingModality, Role } from "@prisma/client";
 import bcrypt from "bcrypt";
 import slugify from "slugify";
 
@@ -33,7 +33,7 @@ async function main() {
     }
   });
 
-  const listingTitle = "Campo mixto con acceso a ruta";
+  const listingTitle = "Campo mixto con acceso todo el año";
   const listingSlug = slugify(listingTitle, { lower: true, strict: true });
 
   await prisma.listing.upsert({
@@ -43,19 +43,23 @@ async function main() {
       ownerId: user.id,
       title: listingTitle,
       slug: listingSlug,
-      priceUsd: 250000,
-      hectares: 120,
       locationText: "Zona rural cercana a centro poblado",
       department: "Departamento Placeholder",
       district: "Distrito Placeholder",
+      hectaresTotal: 120,
       lat: null,
       lng: null,
       description:
-        "Campo con buen acceso y suelos aptos para uso mixto. Servicios básicos disponibles en la zona.",
+        "Campo con buen acceso y suelos aptos para uso mixto. Servicios básicos disponibles en la zona. " +
+        "Ideal para producción ganadera y agrícola con disponibilidad de agua y energía cercana.",
       type: ListingType.MIXTO,
-      hasWater: true,
-      hasTitle: true,
-      accessType: AccessType.RUTA,
+      modality: ListingModality.VENTA,
+      salePriceTotalUsd: 250000,
+      phoneWhatsapp: "+595981234567",
+      contactEmail: "contacto@agroprop.local",
+      waterSources: ["ARROYO"],
+      hasElectricity: true,
+      yearRoundAccess: true,
       status: ListingStatus.PUBLISHED,
       images: {
         create: [

@@ -4,8 +4,9 @@ import ListingGallery from "@/components/listing/ListingGallery";
 import ContactForm from "@/components/forms/ContactForm";
 import { prisma } from "@/lib/db";
 import { buildListingMetadata } from "@/lib/seo/meta";
-import { formatUsd } from "@/lib/utils/format";
+import { formatListingPrice } from "@/lib/utils/format";
 import { ListingStatus } from "@prisma/client";
+import { buildListingJsonLd } from "@/app/(public)/campo/[slug]/schema";
 
 export const revalidate = 60;
 
@@ -18,8 +19,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!listing) return {};
 
   return buildListingMetadata({
-    title: listing.title,
-    description: listing.description.slice(0, 140),
+    title: listing.title ?? "Campo en Paraguay",
+    description: listing.description?.slice(0, 140) ?? "",
     url: `${process.env.NEXT_PUBLIC_APP_URL}/campo/${listing.slug}`,
     imageUrl: listing.images[0]?.url
   });
@@ -43,12 +44,16 @@ export default async function ListingDetailPage({ params }: { params: { slug: st
     );
   }
 
+  const jsonLd = buildListingJsonLd(listing);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
       <main className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-10">
         <section className="flex flex-col gap-4">
-          <h1 className="text-3xl font-semibold text-slate-900">{listing.title}</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">
+            {listing.title ?? "Campo en Paraguay"}
+          </h1>
           <div className="text-slate-600">
             {listing.department} · {listing.district} · {listing.locationText}
           </div>
@@ -65,13 +70,13 @@ export default async function ListingDetailPage({ params }: { params: { slug: st
               <div className="rounded-xl bg-slate-50 p-4 text-sm">
                 <span className="text-slate-500">Precio</span>
                 <div className="text-lg font-semibold text-brand-700">
-                  {formatUsd(listing.priceUsd)}
+                  {formatListingPrice(listing)}
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4 text-sm">
                 <span className="text-slate-500">Hectáreas</span>
                 <div className="text-lg font-semibold text-slate-900">
-                  {listing.hectares} ha
+                  {listing.hectaresTotal} ha
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4 text-sm">
@@ -81,21 +86,21 @@ export default async function ListingDetailPage({ params }: { params: { slug: st
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                <span className="text-slate-500">Acceso</span>
+                <span className="text-slate-500">Modalidad</span>
                 <div className="text-lg font-semibold text-slate-900">
-                  {listing.accessType}
+                  {listing.modality}
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                <span className="text-slate-500">Agua</span>
+                <span className="text-slate-500">Acceso todo el año</span>
                 <div className="text-lg font-semibold text-slate-900">
-                  {listing.hasWater ? "Sí" : "No"}
+                  {listing.yearRoundAccess ? "Sí" : "No"}
                 </div>
               </div>
               <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                <span className="text-slate-500">Título</span>
+                <span className="text-slate-500">Electricidad</span>
                 <div className="text-lg font-semibold text-slate-900">
-                  {listing.hasTitle ? "Sí" : "No"}
+                  {listing.hasElectricity ? "Sí" : "No"}
                 </div>
               </div>
             </div>
@@ -118,6 +123,10 @@ export default async function ListingDetailPage({ params }: { params: { slug: st
         </section>
       </main>
       <Footer />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </div>
   );
 }

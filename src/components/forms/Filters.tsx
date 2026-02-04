@@ -32,6 +32,16 @@ export default function Filters({
         ))}
       </select>
 
+      <select
+        name="modality"
+        defaultValue={(searchParams.modality as string) ?? ""}
+        className="rounded-xl border border-slate-200 px-4 py-2"
+      >
+        <option value="">Modalidad</option>
+        <option value="VENTA">Venta</option>
+        <option value="ALQUILER">Alquiler</option>
+      </select>
+
       <input
         name="minPrice"
         defaultValue={searchParams.minPrice as string}
@@ -71,31 +81,42 @@ export default function Filters({
         <option value="false">Sin agua</option>
       </select>
       <select
-        name="hasTitle"
-        defaultValue={(searchParams.hasTitle as string) ?? ""}
+        name="hasElectricity"
+        defaultValue={(searchParams.hasElectricity as string) ?? ""}
         className="rounded-xl border border-slate-200 px-4 py-2"
       >
-        <option value="">Título</option>
-        <option value="true">Con título</option>
-        <option value="false">Sin título</option>
+        <option value="">Electricidad</option>
+        <option value="true">Sí</option>
+        <option value="false">No</option>
+      </select>
+      <select
+        name="yearRoundAccess"
+        defaultValue={(searchParams.yearRoundAccess as string) ?? ""}
+        className="rounded-xl border border-slate-200 px-4 py-2"
+      >
+        <option value="">Acceso todo el año</option>
+        <option value="true">Sí</option>
+        <option value="false">No</option>
+      </select>
+      <select
+        name="maxSlopePercentRange"
+        defaultValue={(searchParams.maxSlopePercentRange as string) ?? ""}
+        className="rounded-xl border border-slate-200 px-4 py-2"
+      >
+        <option value="">Pendiente</option>
+        <option value="P0_2">0-2%</option>
+        <option value="P2_5">2-5%</option>
+        <option value="P5_10">5-10%</option>
+        <option value="P10_PLUS">10%+</option>
       </select>
 
-      <select
-        name="accessType"
-        defaultValue={(searchParams.accessType as string) ?? ""}
-        className="rounded-xl border border-slate-200 px-4 py-2"
-      >
-        <option value="">Acceso</option>
-        <option value="RUTA">Ruta</option>
-        <option value="CAMINO">Camino</option>
-        <option value="MIXTO">Mixto</option>
-      </select>
       <select
         name="sort"
         defaultValue={(searchParams.sort as string) ?? "newest"}
         className="rounded-xl border border-slate-200 px-4 py-2"
       >
         <option value="newest">Más nuevos</option>
+        <option value="best">Mejores avisos</option>
         <option value="price_asc">Precio: menor a mayor</option>
         <option value="price_desc">Precio: mayor a menor</option>
         <option value="hectares_asc">Hectáreas: menor a mayor</option>

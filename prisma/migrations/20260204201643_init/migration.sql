@@ -2,13 +2,19 @@
 CREATE TYPE "Role" AS ENUM ('USER', 'AGENT', 'ADMIN');
 
 -- CreateEnum
-CREATE TYPE "ListingStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'PAUSED', 'REJECTED');
+CREATE TYPE "ListingStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'PAUSED', 'ARCHIVED');
 
 -- CreateEnum
-CREATE TYPE "ListingType" AS ENUM ('GANADERO', 'AGRO', 'MIXTO');
+CREATE TYPE "ListingType" AS ENUM ('AGRICOLA', 'GANADERO', 'MIXTO', 'ARROCERO', 'FORESTAL');
 
 -- CreateEnum
-CREATE TYPE "AccessType" AS ENUM ('RUTA', 'CAMINO', 'MIXTO');
+CREATE TYPE "ListingModality" AS ENUM ('VENTA', 'ALQUILER');
+
+-- CreateEnum
+CREATE TYPE "WaterSource" AS ENUM ('TAJAMAR', 'ARROYO', 'RIO', 'POZO', 'NINGUNO');
+
+-- CreateEnum
+CREATE TYPE "SlopeRange" AS ENUM ('P0_2', 'P2_5', 'P5_10', 'P10_PLUS');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -27,20 +33,40 @@ CREATE TABLE "User" (
 CREATE TABLE "Listing" (
     "id" TEXT NOT NULL,
     "ownerId" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
-    "priceUsd" INTEGER NOT NULL,
-    "hectares" DOUBLE PRECISION NOT NULL,
-    "locationText" TEXT NOT NULL,
-    "department" TEXT NOT NULL,
-    "district" TEXT NOT NULL,
+    "title" TEXT,
+    "slug" TEXT,
+    "locationText" TEXT,
+    "department" TEXT,
+    "district" TEXT,
+    "hectaresTotal" DOUBLE PRECISION,
+    "type" "ListingType",
+    "modality" "ListingModality",
+    "description" TEXT,
+    "phoneWhatsapp" TEXT,
+    "contactEmail" TEXT,
+    "salePriceTotalUsd" DOUBLE PRECISION,
+    "salePriceUsdPerHa" DOUBLE PRECISION,
+    "rentUsdPerHaPerYear" DOUBLE PRECISION,
+    "rentCropSharePercent" DOUBLE PRECISION,
     "lat" DOUBLE PRECISION,
     "lng" DOUBLE PRECISION,
-    "description" TEXT NOT NULL,
-    "type" "ListingType" NOT NULL,
-    "hasWater" BOOLEAN NOT NULL DEFAULT false,
-    "hasTitle" BOOLEAN NOT NULL DEFAULT false,
-    "accessType" "AccessType" NOT NULL,
+    "productiveAptitude" TEXT,
+    "currentUse" TEXT,
+    "rotationsHistory" TEXT,
+    "soilType" TEXT,
+    "productivityIndex" DOUBLE PRECISION,
+    "waterSources" "WaterSource"[] DEFAULT ARRAY[]::"WaterSource"[],
+    "hasElectricity" BOOLEAN,
+    "hasInternalRoads" BOOLEAN,
+    "hasFences" BOOLEAN,
+    "hasCorrals" BOOLEAN,
+    "hasSilos" BOOLEAN,
+    "hasSheds" BOOLEAN,
+    "distanceToPavedRouteKm" DOUBLE PRECISION,
+    "distanceToTownKm" DOUBLE PRECISION,
+    "yearRoundAccess" BOOLEAN,
+    "maxSlopePercentRange" "SlopeRange",
+    "completenessScore" INTEGER NOT NULL DEFAULT 0,
     "status" "ListingStatus" NOT NULL DEFAULT 'DRAFT',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -90,16 +116,19 @@ CREATE UNIQUE INDEX "Listing_slug_key" ON "Listing"("slug");
 CREATE INDEX "Listing_status_createdAt_idx" ON "Listing"("status", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "Listing_priceUsd_idx" ON "Listing"("priceUsd");
-
--- CreateIndex
-CREATE INDEX "Listing_hectares_idx" ON "Listing"("hectares");
-
--- CreateIndex
 CREATE INDEX "Listing_department_district_idx" ON "Listing"("department", "district");
 
 -- CreateIndex
 CREATE INDEX "Listing_type_idx" ON "Listing"("type");
+
+-- CreateIndex
+CREATE INDEX "Listing_modality_idx" ON "Listing"("modality");
+
+-- CreateIndex
+CREATE INDEX "Listing_hectaresTotal_idx" ON "Listing"("hectaresTotal");
+
+-- CreateIndex
+CREATE INDEX "Listing_completenessScore_idx" ON "Listing"("completenessScore");
 
 -- CreateIndex
 CREATE INDEX "Favorite_listingId_idx" ON "Favorite"("listingId");

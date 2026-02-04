@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerAuthSession } from "@/lib/auth";
 import { listingUpdateSchema } from "@/lib/validators/listing";
-import slugify from "slugify";
 import { ListingStatus } from "@prisma/client";
+import { sanitizeText } from "@/lib/utils/sanitize";
+import { calculateCompletenessScore } from "@/lib/listing/completeness";
 
 async function getListingByIdOrSlug(id: string) {
   const byId = await prisma.listing.findUnique({ where: { id }, include: { images: true } });
@@ -11,16 +12,18 @@ async function getListingByIdOrSlug(id: string) {
   return prisma.listing.findUnique({ where: { slug: id }, include: { images: true } });
 }
 
-async function getUniqueSlug(base: string, excludeId?: string) {
-  let slug = slugify(base, { lower: true, strict: true });
-  let suffix = 1;
+async function updateCompletenessScore(listingId: string) {
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    include: { images: true }
+  });
+  if (!listing) return null;
 
-  while (true) {
-    const existing = await prisma.listing.findUnique({ where: { slug } });
-    if (!existing || existing.id === excludeId) return slug;
-    suffix += 1;
-    slug = `${slugify(base, { lower: true, strict: true })}-${suffix}`;
-  }
+  const score = calculateCompletenessScore(listing, listing.images);
+  return prisma.listing.update({
+    where: { id: listingId },
+    data: { completenessScore: score }
+  });
 }
 
 export async function GET(
@@ -49,6 +52,9 @@ export async function PATCH(
 
   const listing = await prisma.listing.findUnique({ where: { id: params.id } });
   if (!listing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (listing.status === ListingStatus.ARCHIVED) {
+    return NextResponse.json({ error: "Listing archived" }, { status: 400 });
+  }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } });
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -64,8 +70,9 @@ export async function PATCH(
   }
 
   const updateData: any = { ...parsed.data };
-  if (parsed.data.title) {
-    updateData.slug = await getUniqueSlug(parsed.data.title, listing.id);
+  delete updateData.status;
+  if (updateData.description) {
+    updateData.description = sanitizeText(updateData.description);
   }
 
   const updated = await prisma.listing.update({
@@ -73,7 +80,8 @@ export async function PATCH(
     data: updateData
   });
 
-  return NextResponse.json({ data: updated });
+  const withScore = await updateCompletenessScore(updated.id);
+  return NextResponse.json({ data: withScore ?? updated });
 }
 
 export async function DELETE(
@@ -95,6 +103,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  await prisma.listing.delete({ where: { id: listing.id } });
-  return NextResponse.json({ ok: true });
+  const archived = await prisma.listing.update({
+    where: { id: listing.id },
+    data: { status: ListingStatus.ARCHIVED }
+  });
+  return NextResponse.json({ data: archived });
 }

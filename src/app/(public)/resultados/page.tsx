@@ -29,15 +29,8 @@ export default async function ResultsPage({
 
   const where: any = { status: ListingStatus.PUBLISHED };
 
-  if (minPrice !== null || maxPrice !== null) {
-    where.priceUsd = {
-      ...(minPrice !== null ? { gte: minPrice } : {}),
-      ...(maxPrice !== null ? { lte: maxPrice } : {})
-    };
-  }
-
   if (minHectares !== null || maxHectares !== null) {
-    where.hectares = {
+    where.hectaresTotal = {
       ...(minHectares !== null ? { gte: minHectares } : {}),
       ...(maxHectares !== null ? { lte: maxHectares } : {})
     };
@@ -46,25 +39,93 @@ export default async function ResultsPage({
   if (searchParams.department) where.department = searchParams.department;
   if (searchParams.district) where.district = searchParams.district;
   if (searchParams.type) where.type = searchParams.type;
-  if (searchParams.accessType) where.accessType = searchParams.accessType;
-  if (searchParams.hasWater !== undefined && searchParams.hasWater !== "") {
-    where.hasWater = searchParams.hasWater === "true";
+  if (searchParams.modality) where.modality = searchParams.modality;
+  if (searchParams.maxSlopePercentRange) where.maxSlopePercentRange = searchParams.maxSlopePercentRange;
+  if (searchParams.hasElectricity !== undefined && searchParams.hasElectricity !== "") {
+    where.hasElectricity = searchParams.hasElectricity === "true";
   }
-  if (searchParams.hasTitle !== undefined && searchParams.hasTitle !== "") {
-    where.hasTitle = searchParams.hasTitle === "true";
+  if (searchParams.yearRoundAccess !== undefined && searchParams.yearRoundAccess !== "") {
+    where.yearRoundAccess = searchParams.yearRoundAccess === "true";
+  }
+  if (searchParams.hasWater !== undefined && searchParams.hasWater !== "") {
+    if (searchParams.hasWater === "true") {
+      where.waterSources = { hasSome: ["TAJAMAR", "ARROYO", "RIO", "POZO"] };
+    } else {
+      where.NOT = [
+        {
+          waterSources: { hasSome: ["TAJAMAR", "ARROYO", "RIO", "POZO"] }
+        }
+      ];
+    }
+  }
+
+  if (minPrice !== null || maxPrice !== null) {
+    const min = minPrice ?? undefined;
+    const max = maxPrice ?? undefined;
+
+    if (!searchParams.modality) {
+      where.OR = [
+        {
+          modality: "VENTA",
+          OR: [
+            {
+              salePriceTotalUsd: {
+                ...(min !== undefined ? { gte: min } : {}),
+                ...(max !== undefined ? { lte: max } : {})
+              }
+            },
+            {
+              salePriceUsdPerHa: {
+                ...(min !== undefined ? { gte: min } : {}),
+                ...(max !== undefined ? { lte: max } : {})
+              }
+            }
+          ]
+        },
+        {
+          modality: "ALQUILER",
+          rentUsdPerHaPerYear: {
+            ...(min !== undefined ? { gte: min } : {}),
+            ...(max !== undefined ? { lte: max } : {})
+          }
+        }
+      ];
+    } else if (searchParams.modality === "VENTA") {
+      where.OR = [
+        {
+          salePriceTotalUsd: {
+            ...(min !== undefined ? { gte: min } : {}),
+            ...(max !== undefined ? { lte: max } : {})
+          }
+        },
+        {
+          salePriceUsdPerHa: {
+            ...(min !== undefined ? { gte: min } : {}),
+            ...(max !== undefined ? { lte: max } : {})
+          }
+        }
+      ];
+    } else if (searchParams.modality === "ALQUILER") {
+      where.rentUsdPerHaPerYear = {
+        ...(min !== undefined ? { gte: min } : {}),
+        ...(max !== undefined ? { lte: max } : {})
+      };
+    }
   }
 
   const sort = searchParams.sort ?? "newest";
   const orderBy =
     sort === "price_asc"
-      ? { priceUsd: "asc" as const }
+      ? { salePriceTotalUsd: "asc" as const }
       : sort === "price_desc"
-        ? { priceUsd: "desc" as const }
+        ? { salePriceTotalUsd: "desc" as const }
         : sort === "hectares_asc"
-          ? { hectares: "asc" as const }
+          ? { hectaresTotal: "asc" as const }
           : sort === "hectares_desc"
-            ? { hectares: "desc" as const }
-            : { createdAt: "desc" as const };
+            ? { hectaresTotal: "desc" as const }
+            : sort === "best"
+              ? { completenessScore: "desc" as const }
+              : { createdAt: "desc" as const };
 
   const [total, listings] = await Promise.all([
     prisma.listing.count({ where }),

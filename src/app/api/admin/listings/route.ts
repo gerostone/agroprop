@@ -41,6 +41,9 @@ export async function PATCH(request: Request) {
   if (!body?.listingId || !body?.status) {
     return NextResponse.json({ error: "listingId and status required" }, { status: 400 });
   }
+  if (!Object.values(ListingStatus).includes(body.status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
 
   const updated = await prisma.listing.update({
     where: { id: body.listingId },

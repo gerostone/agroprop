@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerAuthSession } from "@/lib/auth";
 import { listingImagesSchema } from "@/lib/validators/listing";
+import { calculateCompletenessScore } from "@/lib/listing/completeness";
 
 export async function POST(
   request: Request,
@@ -42,6 +43,18 @@ export async function POST(
     )
   );
 
+  const withImages = await prisma.listing.findUnique({
+    where: { id: listing.id },
+    include: { images: true }
+  });
+  if (withImages) {
+    const score = calculateCompletenessScore(withImages, withImages.images);
+    await prisma.listing.update({
+      where: { id: listing.id },
+      data: { completenessScore: score }
+    });
+  }
+
   return NextResponse.json({ data: created }, { status: 201 });
 }
 
@@ -75,6 +88,18 @@ export async function DELETE(
   }
 
   await prisma.listingImage.delete({ where: { id: image.id } });
+
+  const withImages = await prisma.listing.findUnique({
+    where: { id: listing.id },
+    include: { images: true }
+  });
+  if (withImages) {
+    const score = calculateCompletenessScore(withImages, withImages.images);
+    await prisma.listing.update({
+      where: { id: listing.id },
+      data: { completenessScore: score }
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }
