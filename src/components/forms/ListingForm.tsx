@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ListingFormData = {
@@ -188,7 +188,7 @@ export default function ListingForm({ initial }: { initial?: ListingFormData }) 
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function saveDraft() {
+  const saveDraft = useCallback(async () => {
     setAutoSaveState("saving");
     const payload = { ...form };
     delete (payload as any).status;
@@ -213,7 +213,7 @@ export default function ListingForm({ initial }: { initial?: ListingFormData }) 
     } catch (err) {
       setAutoSaveState("error");
     }
-  }
+  }, [form]);
 
   useEffect(() => {
     if (!didMount.current) {
@@ -229,7 +229,7 @@ export default function ListingForm({ initial }: { initial?: ListingFormData }) 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [form]);
+  }, [form, saveDraft]);
 
   async function handlePublish() {
     if (!form.id) {
