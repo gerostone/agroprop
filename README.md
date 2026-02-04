@@ -12,10 +12,11 @@ Se creó el esqueleto del repo con:
 
 ## Stack
 - Frontend: Next.js (App Router), TypeScript, Tailwind.
+- PostCSS: `autoprefixer`.
 - Backend: Next API Routes.
 - DB: PostgreSQL + Prisma.
 - Auth: NextAuth Credentials (email + password).
-- Storage: S3 compatible (pendiente implementar signed uploads).
+- Storage: S3 compatible (signed uploads).
 - Rate limit: in-memory (pendiente Upstash).
 
 ## Estructura del repo (MVP)
@@ -123,9 +124,14 @@ Listing de ejemplo publicado con 2 imágenes dummy.
 - `GET /api/admin/users`
 - `PATCH /api/admin/users`
 
+### Uploads
+- `POST /api/uploads`
+  - Body: `{ listingId, fileName, contentType }`
+  - Devuelve `uploadUrl` (signed PUT) + `fileUrl` para guardar en `ListingImage`.
+
 ## Notas importantes
 - El rate limit es temporal (in-memory). En producción usar Upstash.
-- Upload a S3 todavía no está implementado; sólo se guardan URLs.
+- Upload a S3 implementado vía signed PUT en `/api/uploads`.
 - El listado público devuelve sólo `PUBLISHED`.
 - El detalle permite acceder a drafts solo con sesión válida (dueño/admin).
 

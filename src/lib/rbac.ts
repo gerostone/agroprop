@@ -9,3 +9,8 @@ export const roleRank: Record<Role, number> = {
 export function hasRole(userRole: Role, required: Role) {
   return roleRank[userRole] >= roleRank[required];
 }
+
+export function requireRole(userRole: Role | undefined, required: Role) {
+  if (!userRole) return false;
+  return hasRole(userRole, required);
+}

@@ -27,3 +27,9 @@ export const listingImagesSchema = z.union([
   listingImageSchema,
   z.array(listingImageSchema)
 ]);
+
+export const uploadRequestSchema = z.object({
+  listingId: z.string().uuid(),
+  fileName: z.string().min(3),
+  contentType: z.string().min(3)
+});
