@@ -2,37 +2,32 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ListingGallery from "@/components/listing/ListingGallery";
 import ContactForm from "@/components/forms/ContactForm";
-import { prisma } from "@/lib/db";
 import { buildListingMetadata } from "@/lib/seo/meta";
 import { formatListingPrice } from "@/lib/utils/format";
-import { ListingStatus } from "@prisma/client";
+import { demoListings } from "@/lib/demo/data";
 import { buildListingJsonLd } from "@/app/(public)/campo/[slug]/schema";
 
-export const revalidate = 60;
-
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const listing = await prisma.listing.findUnique({
-    where: { slug: params.slug },
-    include: { images: true }
-  });
+  const listing = demoListings.find((item) => item.slug === params.slug);
 
   if (!listing) return {};
 
   return buildListingMetadata({
     title: listing.title ?? "Campo en Paraguay",
     description: listing.description?.slice(0, 140) ?? "",
-    url: `${process.env.NEXT_PUBLIC_APP_URL}/campo/${listing.slug}`,
+    url: `https://gerostone.github.io/agroprop/campo/${listing.slug}`,
     imageUrl: listing.images[0]?.url
   });
 }
 
-export default async function ListingDetailPage({ params }: { params: { slug: string } }) {
-  const listing = await prisma.listing.findUnique({
-    where: { slug: params.slug },
-    include: { images: true, owner: true }
-  });
+export function generateStaticParams() {
+  return demoListings.map((listing) => ({ slug: listing.slug }));
+}
 
-  if (!listing || listing.status !== ListingStatus.PUBLISHED) {
+export default function ListingDetailPage({ params }: { params: { slug: string } }) {
+  const listing = demoListings.find((item) => item.slug === params.slug);
+
+  if (!listing) {
     return (
       <div className="min-h-screen bg-slate-50">
         <Header />
@@ -44,7 +39,10 @@ export default async function ListingDetailPage({ params }: { params: { slug: st
     );
   }
 
-  const jsonLd = buildListingJsonLd(listing);
+  const jsonLd = buildListingJsonLd({
+    ...(listing as any),
+    createdAt: new Date()
+  });
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -91,18 +89,6 @@ export default async function ListingDetailPage({ params }: { params: { slug: st
                   {listing.modality}
                 </div>
               </div>
-              <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                <span className="text-slate-500">Acceso todo el año</span>
-                <div className="text-lg font-semibold text-slate-900">
-                  {listing.yearRoundAccess ? "Sí" : "No"}
-                </div>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-4 text-sm">
-                <span className="text-slate-500">Electricidad</span>
-                <div className="text-lg font-semibold text-slate-900">
-                  {listing.hasElectricity ? "Sí" : "No"}
-                </div>
-              </div>
             </div>
           </div>
 
@@ -110,14 +96,14 @@ export default async function ListingDetailPage({ params }: { params: { slug: st
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h3 className="text-lg font-semibold">Consultar</h3>
               <p className="text-sm text-slate-600">
-                Contactá al dueño sin exponer el email directamente.
+                Demo estática: el formulario no envía datos.
               </p>
               <div className="mt-4">
-                <ContactForm listingId={listing.id} />
+                <ContactForm />
               </div>
             </div>
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
-              Publicado por {listing.owner?.name ?? "Propietario"}
+              Publicado por AgroProp
             </div>
           </aside>
         </section>

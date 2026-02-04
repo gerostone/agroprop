@@ -7,7 +7,7 @@ export default function AdminPage() {
       <Header />
       <main className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10">
         <h1 className="text-2xl font-semibold">Admin</h1>
-        <p className="text-slate-600">Dashboard de moderación.</p>
+        <p className="text-slate-600">Demo estática: requiere backend.</p>
       </main>
       <Footer />
     </div>

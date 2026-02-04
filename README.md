@@ -58,6 +58,10 @@ Se creó el esqueleto del repo con:
 
 Si actualizás el esquema, volver a ejecutar `npx prisma migrate dev`.
 
+## Demo estática (GitHub Pages)
+La rama `Demo` exporta el sitio como estático (sin backend). Ver `docs/GITHUB_PAGES.md`.
+En `Demo` se eliminan API routes, auth y DB para permitir `next export`.
+
 ## Variables de entorno
 Ver `.env.example`.
 

@@ -9,7 +9,6 @@ export default function Header() {
         </Link>
         <nav className="flex items-center gap-4 text-sm text-slate-700">
           <Link href="/resultados">Buscar</Link>
-          <Link href="/dashboard/mis-publicaciones">Mis publicaciones</Link>
           <Link href="/login" className="rounded-full border border-slate-200 px-3 py-1">
             Ingresar
           </Link>

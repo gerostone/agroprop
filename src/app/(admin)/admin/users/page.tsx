@@ -7,7 +7,7 @@ export default function AdminUsersPage() {
       <Header />
       <main className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10">
         <h1 className="text-2xl font-semibold">Usuarios</h1>
-        <p className="text-slate-600">Gestión de usuarios y roles.</p>
+        <p className="text-slate-600">Demo estática: requiere backend.</p>
       </main>
       <Footer />
     </div>

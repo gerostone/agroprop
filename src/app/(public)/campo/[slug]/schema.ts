@@ -1,23 +1,26 @@
-import { Listing } from "@prisma/client";
+export function buildListingJsonLd(listing: {
+  title?: string | null;
+  description?: string | null;
+  createdAt?: Date;
+  department?: string | null;
+  district?: string | null;
+  modality?: string | null;
+  salePriceTotalUsd?: number | null;
+  salePriceUsdPerHa?: number | null;
+  rentUsdPerHaPerYear?: number | null;
+  rentCropSharePercent?: number | null;
+}) {
+  const price =
+    listing.modality === "VENTA"
+      ? listing.salePriceTotalUsd ?? listing.salePriceUsdPerHa
+      : listing.rentUsdPerHaPerYear ?? listing.rentCropSharePercent;
 
-function resolvePrice(listing: Listing) {
-  if (listing.modality === "VENTA") {
-    return listing.salePriceTotalUsd ?? listing.salePriceUsdPerHa ?? null;
-  }
-  if (listing.modality === "ALQUILER") {
-    return listing.rentUsdPerHaPerYear ?? listing.rentCropSharePercent ?? null;
-  }
-  return null;
-}
-
-export function buildListingJsonLd(listing: Listing) {
-  const price = resolvePrice(listing);
   return {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
     name: listing.title ?? "Campo en Paraguay",
     description: listing.description ?? "",
-    datePosted: listing.createdAt.toISOString(),
+    datePosted: listing.createdAt?.toISOString() ?? new Date().toISOString(),
     offers: {
       "@type": "Offer",
       price,

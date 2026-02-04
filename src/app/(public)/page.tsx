@@ -2,18 +2,10 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SearchForm from "@/components/forms/SearchForm";
 import ListingGrid from "@/components/listing/ListingGrid";
-import { prisma } from "@/lib/db";
-import { ListingStatus } from "@prisma/client";
+import { demoListings } from "@/lib/demo/data";
 
-export const revalidate = 60;
-
-export default async function HomePage() {
-  const listings = await prisma.listing.findMany({
-    where: { status: ListingStatus.PUBLISHED },
-    include: { images: true },
-    orderBy: { createdAt: "desc" },
-    take: 6
-  });
+export default function HomePage() {
+  const listings = demoListings.slice(0, 6);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -25,7 +17,7 @@ export default async function HomePage() {
               AgroProp: encontrá tu próximo campo en Paraguay
             </h1>
             <p className="text-slate-600">
-              Buscá por precio, hectáreas, departamento y más.
+              Demo estática para GitHub Pages (sin backend).
             </p>
           </div>
           <SearchForm />
