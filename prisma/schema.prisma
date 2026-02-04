@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  AGENT
+  ADMIN
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  REJECTED
+}
+
+enum ListingType {
+  GANADERO
+  AGRO
+  MIXTO
+}
+
+enum AccessType {
+  RUTA
+  CAMINO
+  MIXTO
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String?
+  email        String     @unique
+  passwordHash String?
+  role         Role       @default(USER)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  listings     Listing[]
+  favorites    Favorite[]
+}
+
+model Listing {
+  id           String         @id @default(uuid())
+  ownerId      String
+  owner        User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  slug         String         @unique
+  priceUsd     Int
+  hectares     Float
+  locationText String
+  department   String
+  district     String
+  lat          Float?
+  lng          Float?
+  description  String
+  type         ListingType
+  hasWater     Boolean        @default(false)
+  hasTitle     Boolean        @default(false)
+  accessType   AccessType
+  status       ListingStatus  @default(DRAFT)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  images       ListingImage[]
+  leads        Lead[]
+  favorites    Favorite[]
+
+  @@index([status, createdAt])
+  @@index([priceUsd])
+  @@index([hectares])
+  @@index([department, district])
+  @@index([type])
+}
+
+model ListingImage {
+  id        String   @id @default(uuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  sortOrder Int      @default(0)
+}
+
+model Lead {
+  id          String   @id @default(uuid())
+  listingId   String
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  senderName  String
+  senderEmail String
+  senderPhone String
+  message     String
+  createdAt   DateTime @default(now())
+}
+
+model Favorite {
+  userId    String
+  listingId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, listingId])
+  @@index([listingId])
+}
