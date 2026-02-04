@@ -31,7 +31,7 @@ export default function ListingCard({ listing }: { listing: ListingCardData }) {
         {cover ? (
           <Image
             src={cover}
-            alt={listing.title}
+            alt={listing.title ?? "AgroProp"}
             fill
             className="object-cover transition duration-300 group-hover:scale-105"
           />
